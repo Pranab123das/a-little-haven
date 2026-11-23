@@ -39,7 +39,7 @@ window.HAVEN_CONTENT = {
       "verse": "This is the day which the LORD hath made; we will rejoice and be glad in it.",
       "explanation": "Every day is a gift from God. This verse encourages us not to overlook the present while waiting for a better tomorrow. We may not control everything that happens, but we can learn to recognise the blessing of being here, living another day, and finding reasons to be grateful.",
       "letter": "My little sunshine,\n\nI hope you learn to love your ordinary days just as much as your special ones.\n\nNot every day will bring exciting news, beautiful surprises or something worth celebrating. Some days will simply be days. But even those days deserve a little smile, a little gratitude and a little appreciation.\n\nI want you to wake up knowing that you have another opportunity to experience something beautiful. Maybe it will be a good conversation, a delicious meal, a lovely sunset or something so tiny that nobody else would notice.\n\nAnd if today wasn’t particularly kind to you, that’s okay. You don’t have to force a smile. Just give tomorrow a chance.\n\nI hope you never forget how precious your little life is, my love. I am so glad that I get to share a few of its days with you.\n\nYour Kishmish ♡"
-    }
+    },
   
       {
       "id": "happy-06",
