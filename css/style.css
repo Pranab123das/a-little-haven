@@ -1,0 +1,116 @@
+
+/* ==========================================
+   A LITTLE HAVEN
+   Vintage Botanical Design System
+========================================== */
+
+:root {
+    /* Backgrounds */
+    --parchment: #F4EBDD;
+    --aged-paper: #E9DDC8;
+    --paper-light: #FBF7EF;
+
+    /* Typography */
+    --ink: #49382D;
+    --walnut: #30251F;
+    --muted-ink: #78695B;
+
+    /* Decorative colours */
+    --antique-gold: #B08D57;
+    --soft-gold: #D0B783;
+    --sage: #89947A;
+
+    /* Individual book colours */
+    --happy: #D8B65F;
+    --sad: #89947A;
+    --lonely: #8EBBCB;
+    --anxious: #A99AC2;
+    --angry: #C68F9C;
+    --thankful: #C69A60;
+    --unspoken: #B8A58A;
+
+    /* Fonts */
+    --font-heading: "Cormorant Garamond", serif;
+    --font-title: "Cinzel", serif;
+    --font-scripture: "IM Fell English", serif;
+    --font-letter: "Allura", cursive;
+    --font-interface: "Lora", serif;
+
+    /* Borders */
+    --border-gold: 1px solid var(--antique-gold);
+
+    /* Rounded corners */
+    --radius-small: 6px;
+    --radius-medium: 12px;
+
+    /* Animation timing */
+    --transition-smooth: 400ms ease;
+    --transition-page: 750ms ease;
+}
+
+/* Global reset */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--parchment);
+    color: var(--ink);
+    font-family: var(--font-interface);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Main application */
+
+#app {
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Buttons */
+
+button {
+    font: inherit;
+    cursor: pointer;
+}
+
+button:focus-visible {
+    outline: 2px solid var(--antique-gold);
+    outline-offset: 4px;
+}
+
+/* Text selection */
+
+::selection {
+    background: var(--soft-gold);
+    color: var(--walnut);
+}
+
+/* Mobile optimisation */
+
+@media (max-width: 600px) {
+    body {
+        font-size: 14px;
+    }
+}
+
+/* Accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
