@@ -1,44 +1,532 @@
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta name="theme-color" content="#F4EBDD">
-
-    <meta name="description"
-          content="A Little Haven — a quiet place for your heart, filled with Scripture, comfort and love.">
+    <meta name="description" content="A little haven of faith, comfort and love.">
 
     <title>A Little Haven ♡</title>
 
-    <!-- Google Fonts -->
+    <!-- Website Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect"
-          href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:wght@400;500;600;700&family=IM+Fell+English:ital@0;1&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <!-- Main stylesheet -->
+    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="css/style.css">
 
+    <!-- Main JavaScript -->
+    <script src="js/app.js" defer></script>
 </head>
 
 <body>
 
-    <!-- Main website container -->
-    <main id="app">
+    <!-- =================================
+         MAIN WEBSITE
+    ================================== -->
 
-        <!-- Website content will be built here -->
+    <div class="haven-container">
 
-    </main>
+        <!-- HEADER -->
 
-    <!-- JavaScript -->
-    <script src="js/app.js"></script>
+        <header class="site-header">
+
+            <div class="brand">
+                <span class="brand-ornament">❧</span>
+
+                <h1>A Little Haven</h1>
+
+                <span class="brand-subtitle">
+                    A little place for your heart
+                </span>
+            </div>
+
+        </header>
+
+
+        <!-- WELCOME SECTION -->
+
+        <main>
+
+            <section class="welcome-section">
+
+                <div class="ornamental-divider">
+                    <span>✦</span>
+                </div>
+
+                <p class="welcome-eyebrow">
+                    A LITTLE SHELTER FOR YOUR SOUL
+                </p>
+
+                <h2>
+                    Welcome, my dearest girl.
+                </h2>
+
+                <p class="welcome-message">
+                    Whenever the world feels a little too loud,
+                    whenever your heart carries more than it can
+                    express, come here.
+
+                    There will always be a little love, a little
+                    faith and a little comfort waiting for you.
+                </p>
+
+                <p class="welcome-signature">
+                    Made with love, just for you ♡
+                </p>
+
+                <div class="ornamental-divider bottom-divider">
+                    <span>❦</span>
+                </div>
+
+            </section>
+
+
+            <!-- BOOK LIBRARY -->
+
+            <section class="library-section" id="library">
+
+                <div class="library-heading">
+
+                    <p class="section-eyebrow">
+                        THE LITTLE LIBRARY
+                    </p>
+
+                    <h2>
+                        Which book does your heart need today?
+                    </h2>
+
+                    <p class="library-description">
+                        Every little book holds a verse,
+                        a letter and a reminder that you
+                        are never alone.
+                    </p>
+
+                </div>
+
+
+                <!-- GLOBAL LOCK STATUS -->
+
+                <div class="library-status" id="libraryStatus"
+                     aria-live="polite">
+
+                    <span class="status-ornament">❦</span>
+
+                    <p id="libraryStatusText">
+                        All the books are waiting for you.
+                    </p>
+
+                </div>
+
+
+                <!-- BOOK COLLECTION -->
+
+                <div class="book-collection">
+
+
+                    <!-- HAPPY BOOK -->
+
+                    <article class="book-item" data-mood="happy">
+
+                        <div class="book-message">
+                            Are you happy today?
+                            Shall we make that smile last a little longer? ♡
+                        </div>
+
+                        <button class="mood-book happy-book"
+                                type="button"
+                                data-mood="happy"
+                                aria-label="Open the Happy book">
+
+                            <span class="book-spine"></span>
+                            <span class="book-frame"></span>
+
+                            <span class="book-top-ornament">❧</span>
+
+                            <span class="book-emblem">H</span>
+
+                            <span class="book-title">
+                                Happy
+                            </span>
+
+                            <span class="book-subtitle">
+                                VERSES OF JOY
+                            </span>
+
+                            <span class="book-bottom-ornament">✦</span>
+
+                        </button>
+
+                        <div class="book-timer">
+                            <span class="timer-label">Available in</span>
+                            <span class="timer-value"
+                                  data-timer="happy">00:00</span>
+                        </div>
+
+                    </article>
+
+
+                    <!-- SAD BOOK -->
+
+                    <article class="book-item" data-mood="sad">
+
+                        <div class="book-message">
+                            Aww, why are you sad?
+                            Come here, let me comfort you with a little verse. ♡
+                        </div>
+
+                        <button class="mood-book sad-book"
+                                type="button"
+                                data-mood="sad"
+                                aria-label="Open the Sad book">
+
+                            <span class="book-spine"></span>
+                            <span class="book-frame"></span>
+
+                            <span class="book-top-ornament">❧</span>
+
+                            <span class="book-emblem">S</span>
+
+                            <span class="book-title">
+                                Sad
+                            </span>
+
+                            <span class="book-subtitle">
+                                VERSES OF COMFORT
+                            </span>
+
+                            <span class="book-bottom-ornament">✦</span>
+
+                        </button>
+
+                        <div class="book-timer">
+                            <span class="timer-label">Available in</span>
+                            <span class="timer-value"
+                                  data-timer="sad">00:00</span>
+                        </div>
+
+                    </article>
+
+
+                    <!-- LONELY BOOK -->
+
+                    <article class="book-item" data-mood="lonely">
+
+                        <div class="book-message">
+                            Feeling a little lonely?
+                            Let me keep you company for a while. ♡
+                        </div>
+
+                        <button class="mood-book lonely-book"
+                                type="button"
+                                data-mood="lonely"
+                                aria-label="Open the Lonely book">
+
+                            <span class="book-spine"></span>
+                            <span class="book-frame"></span>
+
+                            <span class="book-top-ornament">❧</span>
+
+                            <span class="book-emblem">L</span>
+
+                            <span class="book-title">
+                                Lonely
+                            </span>
+
+                            <span class="book-subtitle">
+                                VERSES OF COMPANIONSHIP
+                            </span>
+
+                            <span class="book-bottom-ornament">✦</span>
+
+                        </button>
+
+                        <div class="book-timer">
+                            <span class="timer-label">Available in</span>
+                            <span class="timer-value"
+                                  data-timer="lonely">00:00</span>
+                        </div>
+
+                    </article>
+
+
+                    <!-- ANXIOUS BOOK -->
+
+                    <article class="book-item" data-mood="anxious">
+
+                        <div class="book-message">
+                            Is your mind feeling restless?
+                            Take a breath. Let us find some peace. ♡
+                        </div>
+
+                        <button class="mood-book anxious-book"
+                                type="button"
+                                data-mood="anxious"
+                                aria-label="Open the Anxious book">
+
+                            <span class="book-spine"></span>
+                            <span class="book-frame"></span>
+
+                            <span class="book-top-ornament">❧</span>
+
+                            <span class="book-emblem">A</span>
+
+                            <span class="book-title">
+                                Anxious
+                            </span>
+
+                            <span class="book-subtitle">
+                                VERSES OF PEACE
+                            </span>
+
+                            <span class="book-bottom-ornament">✦</span>
+
+                        </button>
+
+                        <div class="book-timer">
+                            <span class="timer-label">Available in</span>
+                            <span class="timer-value"
+                                  data-timer="anxious">00:00</span>
+                        </div>
+
+                    </article>
+
+
+                    <!-- ANGRY BOOK -->
+
+                    <article class="book-item" data-mood="angry">
+
+                        <div class="book-message">
+                            Had a difficult day?
+                            Let us put your heart at ease. ♡
+                        </div>
+
+                        <button class="mood-book angry-book"
+                                type="button"
+                                data-mood="angry"
+                                aria-label="Open the Angry book">
+
+                            <span class="book-spine"></span>
+                            <span class="book-frame"></span>
+
+                            <span class="book-top-ornament">❧</span>
+
+                            <span class="book-emblem">A</span>
+
+                            <span class="book-title">
+                                Angry
+                            </span>
+
+                            <span class="book-subtitle">
+                                VERSES OF PEACE
+                            </span>
+
+                            <span class="book-bottom-ornament">✦</span>
+
+                        </button>
+
+                        <div class="book-timer">
+                            <span class="timer-label">Available in</span>
+                            <span class="timer-value"
+                                  data-timer="angry">00:00</span>
+                        </div>
+
+                    </article>
+
+
+                    <!-- THANKFUL BOOK -->
+
+                    <article class="book-item" data-mood="thankful">
+
+                        <div class="book-message">
+                            Is your heart filled with gratitude today?
+                            Let us give thanks together. ♡
+                        </div>
+
+                        <button class="mood-book thankful-book"
+                                type="button"
+                                data-mood="thankful"
+                                aria-label="Open the Thankful book">
+
+                            <span class="book-spine"></span>
+                            <span class="book-frame"></span>
+
+                            <span class="book-top-ornament">❧</span>
+
+                            <span class="book-emblem">T</span>
+
+                            <span class="book-title">
+                                Thankful
+                            </span>
+
+                            <span class="book-subtitle">
+                                VERSES OF GRATITUDE
+                            </span>
+
+                            <span class="book-bottom-ornament">✦</span>
+
+                        </button>
+
+                        <div class="book-timer">
+                            <span class="timer-label">Available in</span>
+                            <span class="timer-value"
+                                  data-timer="thankful">00:00</span>
+                        </div>
+
+                    </article>
+
+
+                    <!-- THE UNSPOKEN BOOK -->
+
+                    <article class="book-item unspoken-item"
+                             data-mood="unspoken">
+
+                        <div class="book-message">
+                            There are things you cannot put into words?
+                            You can leave them here. I understand. ♡
+                        </div>
+
+                        <button class="mood-book unspoken-book"
+                                type="button"
+                                data-mood="unspoken"
+                                aria-label="Open The Unspoken book">
+
+                            <span class="book-spine"></span>
+                            <span class="book-frame"></span>
+
+                            <span class="book-top-ornament">❧</span>
+
+                            <span class="book-emblem">U</span>
+
+                            <span class="book-title">
+                                The Unspoken
+                            </span>
+
+                            <span class="book-subtitle">
+                                FOR THE UNSAID
+                            </span>
+
+                            <span class="book-bottom-ornament">✦</span>
+
+                        </button>
+
+                        <div class="book-timer">
+                            <span class="timer-label">Available in</span>
+                            <span class="timer-value"
+                                  data-timer="unspoken">00:00</span>
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </section>
+
+
+            <!-- READING AREA -->
+
+            <section class="reading-section"
+                     id="readingSection"
+                     hidden
+                     aria-live="polite">
+
+                <div class="reading-container">
+
+                    <div class="reading-header">
+
+                        <p class="reading-eyebrow">
+                            A LITTLE SOMETHING FOR YOUR HEART
+                        </p>
+
+                        <h2 id="readingMoodTitle">
+                            A Little Moment
+                        </h2>
+
+                    </div>
+
+
+                    <!-- SCRIPTURE PAGE -->
+
+                    <div class="parchment-page scripture-page"
+                         id="scripturePage">
+
+                        <span class="page-ornament">❦</span>
+
+                        <p class="page-label">
+                            A WORD FROM THE SCRIPTURES
+                        </p>
+
+                        <blockquote id="verseText">
+                            Your scripture will appear here.
+                        </blockquote>
+
+                        <p class="verse-reference"
+                           id="verseReference">
+                        </p>
+
+                        <span class="page-bottom-ornament">✦</span>
+
+                    </div>
+
+
+                    <!-- PERSONAL LETTER PAGE -->
+
+                    <div class="parchment-page letter-page"
+                         id="letterPage">
+
+                        <p class="page-label">
+                            A LETTER FROM MY HEART
+                        </p>
+
+                        <div class="personal-letter"
+                             id="personalLetter">
+                            Your personal letter will appear here.
+                        </div>
+
+                        <p class="letter-signature">
+                            Always yours ♡
+                        </p>
+
+                    </div>
+
+
+                    <!-- CLOSE BOOK -->
+
+                    <button class="close-book-button"
+                            id="closeBookButton"
+                            type="button">
+
+                        Close this little book
+
+                    </button>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- FOOTER -->
+
+        <footer class="site-footer">
+
+            <div class="footer-ornament">❦</div>
+
+            <p class="footer-message">
+                You are loved, more than words can tell.
+            </p>
+
+            <p class="footer-signature">
+                Always yours ♡
+            </p>
+
+        </footer>
+
+    </div>
 
 </body>
 </html>
