@@ -3,7 +3,8 @@
 
 /* =========================================
    A LITTLE HAVEN
-   BOOK OPERATIONS & LOCKDOWN SYSTEM
+   BOOK OPERATIONS, SCRIPTURE & LOCKDOWN
+   Version 2.2.0
 ========================================= */
 
 
@@ -14,7 +15,9 @@
 const HAVEN_CONFIG = {
     lockDuration: 20 * 60 * 1000,
     storageKey: "littleHavenSession",
-    version: "2.0.0"
+    historyKey: "littleHavenVerseHistory",
+    version: "2.2.0",
+    timerInterval: 1000
 };
 
 
@@ -60,120 +63,299 @@ const HAVEN_MOODS = [
     }
 ];
 
+const HAVEN_MOOD_IDS = HAVEN_MOODS.map(mood => mood.id);
+
 
 /* -----------------------------------------
-   3. TEMPORARY READING CONTENT
+   3. LOAD SCRIPTURE CONTENT
 ----------------------------------------- */
 
 /*
-   The authentic KJV verses and personal letters
-   will be added in our content-building stage.
+   content.js MUST be loaded before app.js.
 
-   These are temporary messages, not Bible verses.
+   It provides:
+   window.HAVEN_CONTENT
+
+   Each mood contains 15 entries.
+   Each entry contains:
+   id
+   number
+   reference
+   verse
+   explanation
+   letter
 */
 
-const HAVEN_CONTENT = {
-    happy: {
-        verse: "Your Happy book is waiting for its scripture.",
-        reference: "KJV scripture collection in preparation",
-        letter: "A little happiness is waiting here for you. ♡"
-    },
+const HAVEN_CONTENT = window.HAVEN_CONTENT;
 
-    sad: {
-        verse: "Your Sad book is waiting for its scripture.",
-        reference: "KJV scripture collection in preparation",
-        letter: "You don't have to carry every difficult feeling alone. ♡"
-    },
+if (!HAVEN_CONTENT) {
+    console.error(
+        "A Little Haven: content.js was not found. " +
+        "Load content.js before app.js."
+    );
+} else {
 
-    lonely: {
-        verse: "Your Lonely book is waiting for its scripture.",
-        reference: "KJV scripture collection in preparation",
-        letter: "Even in the quietest moments, you are loved. ♡"
-    },
+    let invalidContent = false;
 
-    anxious: {
-        verse: "Your Anxious book is waiting for its scripture.",
-        reference: "KJV scripture collection in preparation",
-        letter: "Take a gentle breath. You can take things one moment at a time. ♡"
-    },
+    HAVEN_MOODS.forEach(mood => {
 
-    angry: {
-        verse: "Your Angry book is waiting for its scripture.",
-        reference: "KJV scripture collection in preparation",
-        letter: "Your feelings deserve patience, too. ♡"
-    },
+        const entries = HAVEN_CONTENT[mood.id];
 
-    thankful: {
-        verse: "Your Thankful book is waiting for its scripture.",
-        reference: "KJV scripture collection in preparation",
-        letter: "May your heart always find little reasons to be grateful. ♡"
-    },
+        if (!Array.isArray(entries) || entries.length !== 15) {
+            console.error(
+                `A Little Haven: ${mood.name} must contain exactly 15 entries.`
+            );
 
-    unspoken: {
-        verse: "Your Unspoken book is waiting for its scripture.",
-        reference: "KJV scripture collection in preparation",
-        letter: "Even the words you cannot say matter. ♡"
+            invalidContent = true;
+            return;
+        }
+
+        const ids = entries.map(entry => entry.id);
+
+        if (
+            ids.some(id => !id) ||
+            new Set(ids).size !== 15
+        ) {
+            console.error(
+                `A Little Haven: duplicate or missing entry IDs in ${mood.name}.`
+            );
+
+            invalidContent = true;
+        }
+
+        entries.forEach(entry => {
+
+            if (
+                !entry.verse ||
+                !entry.reference ||
+                !entry.explanation ||
+                !entry.letter
+            ) {
+                console.error(
+                    `A Little Haven: incomplete entry in ${mood.name}.`,
+                    entry
+                );
+
+                invalidContent = true;
+            }
+
+        });
+
+    });
+
+    if (invalidContent) {
+        console.error(
+            "A Little Haven: content validation failed. " +
+            "Please check content.js."
+        );
     }
-};
-
-
-/* -----------------------------------------
-   4. DEFAULT SESSION
------------------------------------------ */
-
-function createDefaultSession() {
-    return {
-        version: HAVEN_CONFIG.version,
-
-        // Books already opened in this cycle
-        openedBooks: [],
-
-        // Individual book lockdown expiry timestamps
-        cooldowns: {},
-
-        // Global lockdown expiry timestamp
-        globalUntil: 0,
-
-        // Currently open book
-        activeMood: null
-    };
 }
 
 
 /* -----------------------------------------
-   5. LOAD SAVED SESSION
+   4. HTML ELEMENTS
+----------------------------------------- */
+
+const HAVEN_ELEMENTS = {
+
+    library: document.getElementById("library"),
+
+    readingSection:
+        document.getElementById("readingSection"),
+
+    readingMoodTitle:
+        document.getElementById("readingMoodTitle"),
+
+    verseText:
+        document.getElementById("verseText"),
+
+    verseReference:
+        document.getElementById("verseReference"),
+
+    verseExplanation:
+        document.getElementById("verseExplanation"),
+
+    personalLetter:
+        document.getElementById("personalLetter"),
+
+    closeButton:
+        document.getElementById("closeBookButton"),
+
+    libraryStatus:
+        document.getElementById("libraryStatusText")
+
+};
+
+
+/* -----------------------------------------
+   5. DEFAULT SESSION
+----------------------------------------- */
+
+function createDefaultSession() {
+
+    return {
+
+        version: HAVEN_CONFIG.version,
+
+        // Books opened during the current cycle
+        openedBooks: [],
+
+        // Individual cooldown timestamps
+        cooldowns: {},
+
+        // Global lockdown expiry
+        globalUntil: 0,
+
+        // Currently open book
+        activeMood: null,
+
+        // Exact entry currently being displayed
+        activeEntryId: null
+
+    };
+
+}
+
+
+/* -----------------------------------------
+   6. STORAGE HELPERS
+----------------------------------------- */
+
+function readStoredData(key, fallback) {
+
+    try {
+
+        const saved = localStorage.getItem(key);
+
+        return saved ? JSON.parse(saved) : fallback;
+
+    } catch (error) {
+
+        console.error(
+            `A Little Haven: unable to read ${key}.`,
+            error
+        );
+
+        return fallback;
+
+    }
+
+}
+
+
+function saveSession() {
+
+    try {
+
+        localStorage.setItem(
+            HAVEN_CONFIG.storageKey,
+            JSON.stringify(HAVEN_STATE)
+        );
+
+    } catch (error) {
+
+        console.error(
+            "A Little Haven: could not save session.",
+            error
+        );
+
+    }
+
+}
+
+
+function saveHistory() {
+
+    try {
+
+        localStorage.setItem(
+            HAVEN_CONFIG.historyKey,
+            JSON.stringify(HAVEN_HISTORY)
+        );
+
+    } catch (error) {
+
+        console.error(
+            "A Little Haven: could not save verse history.",
+            error
+        );
+
+    }
+
+}
+
+
+/* -----------------------------------------
+   7. LOAD SESSION
 ----------------------------------------- */
 
 function loadSession() {
-    try {
-        const saved = localStorage.getItem(
-            HAVEN_CONFIG.storageKey
-        );
 
-        if (!saved) {
-            return createDefaultSession();
-        }
+    const saved = readStoredData(
+        HAVEN_CONFIG.storageKey,
+        null
+    );
 
-        const parsed = JSON.parse(saved);
-
-        if (
-            parsed.version !== HAVEN_CONFIG.version ||
-            !Array.isArray(parsed.openedBooks) ||
-            typeof parsed.cooldowns !== "object" ||
-            parsed.cooldowns === null
-        ) {
-            return createDefaultSession();
-        }
-
-        return {
-            ...createDefaultSession(),
-            ...parsed
-        };
-
-    } catch (error) {
-        console.error("Could not load saved session:", error);
+    if (!saved || typeof saved !== "object") {
         return createDefaultSession();
     }
+
+    const session = {
+        ...createDefaultSession(),
+        ...saved
+    };
+
+    session.openedBooks = Array.isArray(saved.openedBooks)
+        ? [...new Set(
+            saved.openedBooks.filter(id =>
+                HAVEN_MOOD_IDS.includes(id)
+            )
+        )]
+        : [];
+
+    session.cooldowns =
+        saved.cooldowns &&
+        typeof saved.cooldowns === "object" &&
+        !Array.isArray(saved.cooldowns)
+            ? saved.cooldowns
+            : {};
+
+    session.globalUntil =
+        Number(saved.globalUntil) || 0;
+
+    /*
+       If the previous version did not save an entry ID,
+       we cannot safely restore its temporary content.
+       Therefore, clear that outdated active reading state.
+    */
+
+    if (
+        !HAVEN_MOOD_IDS.includes(session.activeMood) ||
+        typeof session.activeEntryId !== "string" ||
+        !session.activeEntryId
+    ) {
+
+        session.activeMood = null;
+        session.activeEntryId = null;
+
+    }
+
+    /*
+       If the global lockdown has already expired,
+       start a completely new cycle.
+    */
+
+    if (
+        session.globalUntil > 0 &&
+        session.globalUntil <= Date.now()
+    ) {
+
+        return createDefaultSession();
+
+    }
+
+    return session;
+
 }
 
 
@@ -181,71 +363,158 @@ let HAVEN_STATE = loadSession();
 
 
 /* -----------------------------------------
-   6. SAVE SESSION
+   8. LOAD VERSE HISTORY
 ----------------------------------------- */
 
-function saveSession() {
-    try {
-        localStorage.setItem(
-            HAVEN_CONFIG.storageKey,
-            JSON.stringify(HAVEN_STATE)
+function loadHistory() {
+
+    const saved = readStoredData(
+        HAVEN_CONFIG.historyKey,
+        {}
+    );
+
+    const history = {};
+
+    HAVEN_MOODS.forEach(mood => {
+
+        const entries = HAVEN_CONTENT
+            ? HAVEN_CONTENT[mood.id]
+            : [];
+
+        const validIds = new Set(
+            entries.map(entry => entry.id)
         );
-    } catch (error) {
-        console.error("Could not save session:", error);
-    }
+
+        const bookHistory = saved[mood.id];
+
+        if (
+            !bookHistory ||
+            typeof bookHistory !== "object"
+        ) {
+
+            history[mood.id] = {
+                remaining: [],
+                lastShownId: null
+            };
+
+            return;
+
+        }
+
+        history[mood.id] = {
+
+            remaining: Array.isArray(bookHistory.remaining)
+                ? bookHistory.remaining.filter(id =>
+                    validIds.has(id)
+                )
+                : [],
+
+            lastShownId:
+                validIds.has(bookHistory.lastShownId)
+                    ? bookHistory.lastShownId
+                    : null
+
+        };
+
+    });
+
+    return history;
+
 }
 
 
+let HAVEN_HISTORY = loadHistory();
+
+
 /* -----------------------------------------
-   7. FIND BOOK INFORMATION
+   9. BOOK INFORMATION
 ----------------------------------------- */
 
 function getMood(moodId) {
+
     return HAVEN_MOODS.find(
         mood => mood.id === moodId
     );
+
+}
+
+
+function getBookEntries(moodId) {
+
+    if (!HAVEN_CONTENT) return [];
+
+    return HAVEN_CONTENT[moodId] || [];
+
 }
 
 
 /* -----------------------------------------
-   8. CHECK LOCKDOWN STATES
+   10. LOCKDOWN CHECKS
 ----------------------------------------- */
 
 function isGlobalLocked() {
+
     return Date.now() < HAVEN_STATE.globalUntil;
+
 }
 
 
 function isIndividuallyLocked(moodId) {
-    const expiry = HAVEN_STATE.cooldowns[moodId] || 0;
+
+    const expiry =
+        HAVEN_STATE.cooldowns[moodId] || 0;
 
     return Date.now() < expiry;
+
+}
+
+
+function hasAlreadyBeenOpened(moodId) {
+
+    return HAVEN_STATE.openedBooks.includes(moodId);
+
 }
 
 
 function isBookLocked(moodId) {
+
     return (
+
         isGlobalLocked() ||
-        isIndividuallyLocked(moodId)
+
+        isIndividuallyLocked(moodId) ||
+
+        hasAlreadyBeenOpened(moodId) ||
+
+        HAVEN_STATE.openedBooks.length >= 2
+
     );
+
 }
 
 
 function getRemainingTime(expiry) {
-    return Math.max(0, expiry - Date.now());
+
+    return Math.max(
+        0,
+        expiry - Date.now()
+    );
+
 }
 
 
 /* -----------------------------------------
-   9. TIMER FORMATTING
+   11. TIMER FORMATTING
 ----------------------------------------- */
 
 function formatTimer(milliseconds) {
+
     const totalSeconds = Math.ceil(
         Math.max(0, milliseconds) / 1000
     );
 
     const minutes = Math.floor(totalSeconds / 60);
+
     const seconds = totalSeconds % 60;
 
     return (
@@ -253,103 +522,197 @@ function formatTimer(milliseconds) {
         ":" +
         String(seconds).padStart(2, "0")
     );
+
 }
 
 
 /* -----------------------------------------
-   10. UPDATE BOOK APPEARANCE
+   12. SHUFFLE FUNCTION
 ----------------------------------------- */
 
-function updateBooks() {
+function shuffleArray(array) {
 
-    const now = Date.now();
+    const result = [...array];
 
-    const globalLocked = now < HAVEN_STATE.globalUntil;
+    for (let i = result.length - 1; i > 0; i--) {
 
-    HAVEN_MOODS.forEach(mood => {
-
-        const bookItem = document.querySelector(
-            `.book-item[data-mood="${mood.id}"]`
+        const j = Math.floor(
+            Math.random() * (i + 1)
         );
 
-        const bookButton = document.querySelector(
-            `.mood-book[data-mood="${mood.id}"]`
-        );
+        [result[i], result[j]] = [
+            result[j],
+            result[i]
+        ];
 
-        const timer = document.querySelector(
-            `[data-timer="${mood.id}"]`
-        );
+    }
 
-        if (!bookItem || !bookButton || !timer) {
-            return;
-        }
+    return result;
 
-        const individualExpiry =
-            HAVEN_STATE.cooldowns[mood.id] || 0;
-
-        const locked = globalLocked ||
-            now < individualExpiry;
-
-        let remaining = 0;
-
-        if (globalLocked) {
-            remaining = getRemainingTime(
-                HAVEN_STATE.globalUntil
-            );
-        } else if (now < individualExpiry) {
-            remaining = getRemainingTime(
-                individualExpiry
-            );
-        }
-
-        bookItem.classList.toggle(
-            "is-locked",
-            locked
-        );
-
-        bookButton.disabled = locked ||
-            Boolean(HAVEN_STATE.activeMood);
-
-        bookButton.setAttribute(
-            "aria-disabled",
-            String(bookButton.disabled)
-        );
-
-        timer.textContent = formatTimer(remaining);
-
-        const timerLabel = bookItem.querySelector(
-            ".timer-label"
-        );
-
-        if (timerLabel) {
-            timerLabel.textContent = "LOCKDOWN TIMER";
-        }
-
-        const message = bookItem.querySelector(
-            ".book-message"
-        );
-
-        if (message) {
-            message.textContent = locked
-                ? "Resting for a little while. Come back soon. ♡"
-                : mood.message;
-        }
-
-    });
-
-    updateLibraryStatus();
 }
 
 
 /* -----------------------------------------
-   11. LIBRARY STATUS MESSAGE
+   13. GET NEXT SCRIPTURE ENTRY
+----------------------------------------- */
+
+function getNextEntry(moodId) {
+
+    const entries = getBookEntries(moodId);
+
+    if (entries.length !== 15) {
+        console.error(
+            `A Little Haven: invalid entries for ${moodId}.`
+        );
+
+        return null;
+    }
+
+    const validIds = new Set(
+        entries.map(entry => entry.id)
+    );
+
+    let bookHistory = HAVEN_HISTORY[moodId];
+
+    if (!bookHistory) {
+
+        bookHistory = {
+            remaining: [],
+            lastShownId: null
+        };
+
+    }
+
+    // Remove invalid IDs from saved history.
+    bookHistory.remaining =
+        bookHistory.remaining.filter(id =>
+            validIds.has(id)
+        );
+
+    /*
+       When every entry has been shown,
+       create a new shuffled collection.
+    */
+
+    if (bookHistory.remaining.length === 0) {
+
+        let newBag = shuffleArray(
+            entries.map(entry => entry.id)
+        );
+
+        /*
+           Avoid an immediate repeat at the boundary
+           between two shuffle cycles.
+        */
+
+        if (
+            newBag.length > 1 &&
+            newBag[newBag.length - 1] ===
+                bookHistory.lastShownId
+        ) {
+
+            [
+                newBag[0],
+                newBag[newBag.length - 1]
+            ] = [
+                newBag[newBag.length - 1],
+                newBag[0]
+            ];
+
+        }
+
+        bookHistory.remaining = newBag;
+
+    }
+
+    const nextId = bookHistory.remaining.shift();
+
+    const selectedEntry = entries.find(
+        entry => entry.id === nextId
+    );
+
+    if (!selectedEntry) return null;
+
+    bookHistory.lastShownId = selectedEntry.id;
+
+    HAVEN_HISTORY[moodId] = bookHistory;
+
+    saveHistory();
+
+    return selectedEntry;
+
+}
+
+
+/* -----------------------------------------
+   14. DISPLAY A SCRIPTURE ENTRY
+----------------------------------------- */
+
+function displayEntry(moodId, entry) {
+
+    const mood = getMood(moodId);
+
+    if (!mood || !entry) return;
+
+    if (!HAVEN_ELEMENTS.readingSection) {
+        console.error(
+            "A Little Haven: #readingSection is missing."
+        );
+
+        return;
+    }
+
+    /*
+       Use textContent to display the approved
+       wording without interpreting it as HTML.
+    */
+
+    if (HAVEN_ELEMENTS.readingMoodTitle) {
+        HAVEN_ELEMENTS.readingMoodTitle.textContent =
+            mood.name;
+    }
+
+    if (HAVEN_ELEMENTS.verseText) {
+        HAVEN_ELEMENTS.verseText.textContent =
+            entry.verse;
+    }
+
+    if (HAVEN_ELEMENTS.verseReference) {
+        HAVEN_ELEMENTS.verseReference.textContent =
+            entry.reference;
+    }
+
+    if (HAVEN_ELEMENTS.verseExplanation) {
+        HAVEN_ELEMENTS.verseExplanation.textContent =
+            entry.explanation;
+    }
+
+    if (HAVEN_ELEMENTS.personalLetter) {
+        HAVEN_ELEMENTS.personalLetter.textContent =
+            entry.letter;
+    }
+
+    // Save the exact entry being read.
+    HAVEN_STATE.activeMood = moodId;
+
+    HAVEN_STATE.activeEntryId = entry.id;
+
+    saveSession();
+
+    HAVEN_ELEMENTS.readingSection.hidden = false;
+
+    updateBooks();
+
+}
+
+
+/* -----------------------------------------
+   15. UPDATE LIBRARY STATUS
 ----------------------------------------- */
 
 function updateLibraryStatus() {
 
-    const status = document.getElementById(
-        "libraryStatusText"
-    );
+    const status = HAVEN_ELEMENTS.libraryStatus;
 
     if (!status) return;
 
@@ -381,71 +744,228 @@ function updateLibraryStatus() {
             "All the books are waiting for you. ♡";
 
     }
+
 }
 
 
 /* -----------------------------------------
-   12. OPEN A BOOK
+   16. UPDATE BOOK APPEARANCE
+----------------------------------------- */
+
+function updateBooks() {
+
+    const now = Date.now();
+
+    const globalLocked =
+        now < HAVEN_STATE.globalUntil;
+
+    HAVEN_MOODS.forEach(mood => {
+
+        const bookItem = document.querySelector(
+            `.book-item[data-mood="${mood.id}"]`
+        );
+
+        const bookButton = document.querySelector(
+            `.mood-book[data-mood="${mood.id}"]`
+        );
+
+        const timer = document.querySelector(
+            `[data-timer="${mood.id}"]`
+        );
+
+        /*
+           Support the existing HTML structure.
+           The outer .book-item and inner .mood-book
+           are both recognised.
+        */
+
+        if (!bookButton) return;
+
+        const individualExpiry =
+            HAVEN_STATE.cooldowns[mood.id] || 0;
+
+        const individuallyLocked =
+            now < individualExpiry;
+
+        const alreadyOpened =
+            hasAlreadyBeenOpened(mood.id);
+
+        const anotherBookIsOpen =
+            Boolean(HAVEN_STATE.activeMood);
+
+        const cycleFinished =
+            HAVEN_STATE.openedBooks.length >= 2;
+
+        const locked =
+            globalLocked ||
+            individuallyLocked ||
+            alreadyOpened ||
+            cycleFinished;
+
+        const disabled =
+            locked || anotherBookIsOpen;
+
+        if (bookItem) {
+
+            bookItem.classList.toggle(
+                "is-locked",
+                locked
+            );
+
+            bookItem.classList.toggle(
+                "is-open",
+                HAVEN_STATE.activeMood === mood.id
+            );
+
+        }
+
+        bookButton.disabled = disabled;
+
+        bookButton.setAttribute(
+            "aria-disabled",
+            String(disabled)
+        );
+
+        // Determine the correct timer.
+        let remaining = 0;
+
+        if (globalLocked) {
+
+            remaining = getRemainingTime(
+                HAVEN_STATE.globalUntil
+            );
+
+        } else if (individuallyLocked) {
+
+            remaining = getRemainingTime(
+                individualExpiry
+            );
+
+        }
+
+        if (timer) {
+
+            if (globalLocked || individuallyLocked) {
+
+                timer.textContent =
+                    formatTimer(remaining);
+
+            } else if (alreadyOpened) {
+
+                timer.textContent =
+                    "USED THIS CYCLE";
+
+            } else {
+
+                timer.textContent = "";
+
+            }
+
+        }
+
+        // Update optional timer label.
+        const timerLabel = bookItem
+            ? bookItem.querySelector(".timer-label")
+            : null;
+
+        if (timerLabel) {
+
+            timerLabel.textContent =
+                globalLocked || individuallyLocked
+                    ? "LOCKDOWN TIMER"
+                    : alreadyOpened
+                        ? "BOOK STATUS"
+                        : "";
+
+        }
+
+        // Update the existing book message.
+        const message = bookItem
+            ? bookItem.querySelector(".book-message")
+            : null;
+
+        if (message) {
+
+            if (globalLocked) {
+
+                message.textContent =
+                    "The little library is resting. Come back soon. ♡";
+
+            } else if (alreadyOpened) {
+
+                message.textContent =
+                    "This little book has already been opened this cycle. ♡";
+
+            } else if (individuallyLocked) {
+
+                message.textContent =
+                    "Resting for a little while. Come back soon. ♡";
+
+            } else {
+
+                message.textContent = mood.message;
+
+            }
+
+        }
+
+    });
+
+    updateLibraryStatus();
+
+}
+
+
+/* -----------------------------------------
+   17. OPEN A BOOK
 ----------------------------------------- */
 
 function openBook(moodId) {
 
+    if (!HAVEN_CONTENT) return;
+
+    // Do not allow another book while one is open.
     if (HAVEN_STATE.activeMood) return;
 
+    // Global lockdown.
     if (isGlobalLocked()) return;
 
+    // Individual cooldown.
     if (isIndividuallyLocked(moodId)) return;
 
+    // Maximum two books per cycle.
     if (HAVEN_STATE.openedBooks.length >= 2) return;
 
-    if (HAVEN_STATE.openedBooks.includes(moodId)) return;
+    // Each book can be opened only once per cycle.
+    if (hasAlreadyBeenOpened(moodId)) return;
 
     const mood = getMood(moodId);
 
     if (!mood) return;
 
-    const content = HAVEN_CONTENT[moodId];
+    const entry = getNextEntry(moodId);
 
-    if (!content) return;
+    if (!entry) return;
 
+    /*
+       Register the book before displaying it.
+       The selected entry is already recorded
+       in the shuffle history.
+    */
 
-    // Register this book in the current cycle
     HAVEN_STATE.openedBooks.push(moodId);
 
-    // Record the active book
     HAVEN_STATE.activeMood = moodId;
+
+    HAVEN_STATE.activeEntryId = entry.id;
 
     saveSession();
 
-
-    // Display reading content
-    document.getElementById(
-        "readingMoodTitle"
-    ).textContent = mood.name;
-
-    document.getElementById(
-        "verseText"
-    ).textContent = content.verse;
-
-    document.getElementById(
-        "verseReference"
-    ).textContent = content.reference;
-
-    document.getElementById(
-        "personalLetter"
-    ).textContent = content.letter;
-
-
-    // Show reading section
-    const readingSection = document.getElementById(
-        "readingSection"
-    );
-
-    readingSection.hidden = false;
+    displayEntry(moodId, entry);
 
     updateBooks();
 
-    readingSection.scrollIntoView({
+    HAVEN_ELEMENTS.readingSection.scrollIntoView({
         behavior: "smooth",
         block: "start"
     });
@@ -454,7 +974,7 @@ function openBook(moodId) {
 
 
 /* -----------------------------------------
-   13. CLOSE A BOOK
+   18. CLOSE A BOOK
 ----------------------------------------- */
 
 function closeBook() {
@@ -463,19 +983,22 @@ function closeBook() {
 
     const closedMood = HAVEN_STATE.activeMood;
 
-    // Clear active book
+    // Clear the active reading state.
     HAVEN_STATE.activeMood = null;
 
+    HAVEN_STATE.activeEntryId = null;
 
-    // Start individual lockdown
+    /*
+       Start individual 20-minute cooldown
+       when the book is closed.
+    */
+
     HAVEN_STATE.cooldowns[closedMood] =
         Date.now() + HAVEN_CONFIG.lockDuration;
 
-
     /*
-       If two books have now been opened and
-       the second one is closed, begin global
-       lockdown for the entire library.
+       After the second book is closed,
+       lock the entire library for 20 minutes.
     */
 
     if (HAVEN_STATE.openedBooks.length === 2) {
@@ -483,79 +1006,91 @@ function closeBook() {
         HAVEN_STATE.globalUntil =
             Date.now() + HAVEN_CONFIG.lockDuration;
 
-        // Clear individual cooldowns.
-        // Global lockdown now overrides them.
+        // Global lockdown replaces individual cooldowns.
         HAVEN_STATE.cooldowns = {};
 
     }
+   saveSession();
 
+    // Hide the reading section.
+    if (HAVEN_ELEMENTS.readingSection) {
 
-    // Save everything
-    saveSession();
+        HAVEN_ELEMENTS.readingSection.hidden = true;
 
+    }
 
-    // Hide reading section
-    const readingSection = document.getElementById(
-        "readingSection"
-    );
-
-    readingSection.hidden = true;
-
-
-    // Refresh book appearance
     updateBooks();
 
+    // Return to the library.
+    if (HAVEN_ELEMENTS.library) {
 
-    // Return to the library
-    document.getElementById(
-        "library"
-    ).scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-    });
+        HAVEN_ELEMENTS.library.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+    }
 
 }
 
 
 /* -----------------------------------------
-   14. RESET AFTER GLOBAL LOCKDOWN
+   19. RESET GLOBAL SESSION
 ----------------------------------------- */
 
 function resetGlobalSession() {
 
     HAVEN_STATE.openedBooks = [];
+
     HAVEN_STATE.cooldowns = {};
+
     HAVEN_STATE.globalUntil = 0;
+
     HAVEN_STATE.activeMood = null;
 
-    saveSession();
+    HAVEN_STATE.activeEntryId = null;
+   saveSession();
 
     updateBooks();
 
-    console.log("A Little Haven is ready for a new cycle.");
+    console.log(
+        "A Little Haven: a new reading cycle has begun. ♡"
+    );
+
 }
 
 
 /* -----------------------------------------
-   15. CHECK TIMERS
+   20. CHECK TIMERS
 ----------------------------------------- */
 
 function checkTimers() {
 
     const now = Date.now();
 
-    // Global lockdown has finished
+    /*
+       When global lockdown expires,
+       reset all book access restrictions.
+    */
+
     if (
         HAVEN_STATE.globalUntil > 0 &&
         now >= HAVEN_STATE.globalUntil
     ) {
+
         resetGlobalSession();
+
         return;
+
     }
 
-
-    // Remove expired individual cooldowns
     let changed = false;
+   /*
+       Remove expired individual cooldowns.
+       The book remains unavailable for the
+       rest of this cycle because it has already
+       been opened once.
+    */
 
     Object.keys(HAVEN_STATE.cooldowns).forEach(moodId => {
 
@@ -564,27 +1099,71 @@ function checkTimers() {
             delete HAVEN_STATE.cooldowns[moodId];
 
             changed = true;
+
         }
 
     });
-
 
     if (changed) {
         saveSession();
     }
 
     updateBooks();
+
 }
 
 
 /* -----------------------------------------
-   16. CONNECT BOOK BUTTONS
+   21. RESTORE OPEN BOOK AFTER REFRESH
+----------------------------------------- */
+
+function restoreOpenBook() {
+
+    const moodId = HAVEN_STATE.activeMood;
+
+    const entryId = HAVEN_STATE.activeEntryId;
+
+    if (!moodId || !entryId) return;
+   const mood = getMood(moodId);
+
+    const entries = getBookEntries(moodId);
+
+    const entry = entries.find(
+        item => item.id === entryId
+    );
+
+    if (!mood || !entry) {
+
+        console.error(
+            "A Little Haven: saved reading entry could not be restored."
+        );
+
+        HAVEN_STATE.activeMood = null;
+
+        HAVEN_STATE.activeEntryId = null;
+
+        saveSession();
+
+        return;
+
+    }
+
+    /*
+       Restore the exact same entry.
+       Do not select another random verse.
+    */
+
+    displayEntry(moodId, entry);
+
+}
+/* -----------------------------------------
+   22. CONNECT BOOK BUTTONS
 ----------------------------------------- */
 
 function connectBookButtons() {
 
     const buttons = document.querySelectorAll(
-        ".mood-book"
+        ".mood-book[data-mood]"
     );
 
     buttons.forEach(button => {
@@ -603,18 +1182,23 @@ function connectBookButtons() {
 
 
 /* -----------------------------------------
-   17. CONNECT CLOSE BUTTON
+   23. CONNECT CLOSE BUTTON
 ----------------------------------------- */
 
 function connectCloseButton() {
 
-    const closeButton = document.getElementById(
-        "closeBookButton"
-    );
+    const closeButton = HAVEN_ELEMENTS.closeButton;
 
-    if (!closeButton) return;
+    if (!closeButton) {
 
-    closeButton.addEventListener(
+        console.warn(
+            "A Little Haven: #closeBookButton was not found."
+        );
+
+        return;
+
+    }
+   closeButton.addEventListener(
         "click",
         closeBook
     );
@@ -623,52 +1207,20 @@ function connectCloseButton() {
 
 
 /* -----------------------------------------
-   18. RESTORE AN OPEN BOOK
------------------------------------------ */
-
-function restoreOpenBook() {
-
-    const moodId = HAVEN_STATE.activeMood;
-
-    if (!moodId) return;
-
-    const mood = getMood(moodId);
-    const content = HAVEN_CONTENT[moodId];
-
-    if (!mood || !content) {
-        HAVEN_STATE.activeMood = null;
-        saveSession();
-        return;
-    }
-
-    document.getElementById(
-        "readingMoodTitle"
-    ).textContent = mood.name;
-
-    document.getElementById(
-        "verseText"
-    ).textContent = content.verse;
-
-    document.getElementById(
-        "verseReference"
-    ).textContent = content.reference;
-
-    document.getElementById(
-        "personalLetter"
-    ).textContent = content.letter;
-
-    document.getElementById(
-        "readingSection"
-    ).hidden = false;
-
-}
-
-
-/* -----------------------------------------
-   19. INITIALISE WEBSITE
+   24. INITIALISE WEBSITE
 ----------------------------------------- */
 
 function initialiseHaven() {
+
+    if (!HAVEN_CONTENT) {
+
+        console.error(
+            "A Little Haven could not start because content.js is missing."
+        );
+
+        return;
+
+    }
 
     connectBookButtons();
 
@@ -678,22 +1230,76 @@ function initialiseHaven() {
 
     updateBooks();
 
-    // Update countdowns every second
-    window.setInterval(checkTimers, 1000);
+    // Refresh countdowns once every second.
+    window.setInterval(
+        checkTimers,
+        HAVEN_CONFIG.timerInterval
+    );
 
-    console.log("A Little Haven is ready ♡");
-    console.log("Books registered:", HAVEN_MOODS.length);
-    console.log("Maximum books per cycle: 2");
-    console.log("Lockdown duration: 20 minutes");
+    console.log("A Little Haven is ready. ♡");
+   console.log(
+        "Registered books:",
+        HAVEN_MOODS.length
+    );
+
+    console.log(
+        "Entries per book:",
+        15
+    );
+
+    console.log(
+        "Maximum books per cycle:",
+        2
+    );
+
+    console.log(
+        "Lockdown duration:",
+        "20 minutes"
+    );
 
 }
 
 
 /* -----------------------------------------
-   20. START
+   25. START APPLICATION
 ----------------------------------------- */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    initialiseHaven
-);
+if (document.readyState === "loading") {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initialiseHaven
+    );
+
+} else {
+
+    initialiseHaven();
+
+}
+/* -----------------------------------------
+   26. OPTIONAL DEBUGGING ACCESS
+----------------------------------------- */
+
+window.HAVEN_APP = {
+
+    openBook,
+
+    closeBook,
+
+    updateBooks,
+
+    checkTimers,
+
+    getState() {
+        return JSON.parse(
+            JSON.stringify(HAVEN_STATE)
+        );
+    },
+
+    getHistory() {
+        return JSON.parse(
+            JSON.stringify(HAVEN_HISTORY)
+        );
+    }
+
+};
