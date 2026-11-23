@@ -705,6 +705,21 @@ button:focus-visible {
     line-height: 1.9;
     color: var(--ink);
 }
+/* SCRIPTURE EXPLANATION */
+
+.verse-explanation {
+    max-width: 500px;
+    margin: 24px auto 0;
+    font-family: var(--body-font);
+    font-size: 13px;
+    line-height: 2;
+    color: var(--muted-ink);
+    font-style: normal;
+}
+
+.verse-reference {
+    margin-top: 22px;
+}
 
 .verse-reference {
     font-family: var(--book-font);
