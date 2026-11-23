@@ -718,10 +718,6 @@ button:focus-visible {
 }
 
 .verse-reference {
-    margin-top: 22px;
-}
-
-.verse-reference {
     font-family: var(--book-font);
     font-size: 11px;
     letter-spacing: 1px;
@@ -1009,4 +1005,77 @@ button:focus-visible {
         transition-duration: 0.01ms !important;
     }
 
+}
+
+/* =========================================
+   24. READING AND INTERACTION REFINEMENTS
+========================================= */
+
+/* Currently opened book */
+.book-item.is-open .mood-book,
+.mood-book.is-open {
+    transform: translateY(-5px);
+    box-shadow:
+        inset 4px 0 6px rgba(255,255,255,0.13),
+        inset -5px 0 8px rgba(0,0,0,0.2),
+        0 0 0 2px var(--antique-gold),
+        10px 15px 22px rgba(48,37,31,0.22);
+}
+
+/* Do not animate or lift locked books */
+.book-item.is-locked .mood-book:hover,
+.book-item.is-locked .mood-book:active {
+    transform: none;
+    cursor: not-allowed;
+}
+
+/* Disabled book buttons */
+.mood-book:disabled {
+    cursor: not-allowed;
+}
+
+/* Better text wrapping on parchment */
+.scripture-page blockquote,
+.verse-explanation,
+.personal-letter {
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+/* Keep long letters readable */
+.personal-letter {
+    text-align: left;
+}
+
+/* Clear keyboard focus in the reading area */
+.close-book-button:focus-visible {
+    outline: 2px solid var(--antique-gold);
+    outline-offset: 5px;
+}
+
+/* Avoid awkward horizontal overflow on narrow screens */
+.parchment-page {
+    overflow-wrap: break-word;
+}
+
+/* Respect disabled interaction on locked books */
+.book-item.is-locked .mood-book {
+    pointer-events: auto;
+}
+
+@media (max-width: 520px) {
+    .scripture-page blockquote {
+        font-size: 21px;
+        line-height: 1.8;
+    }
+
+    .verse-explanation {
+        font-size: 12px;
+        line-height: 1.9;
+    }
+
+    .personal-letter {
+        font-size: 27px;
+        line-height: 1.6;
+    }
 }
